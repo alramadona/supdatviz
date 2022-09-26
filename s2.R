@@ -17,6 +17,7 @@ head(pennLC$data, 10)
 head(pennLC$smoking, 10)
 
 pennLC$spatial.polygon
+plot(pennLC$spatial.polygon)
 
 
 # analisis spasial (1) ----------------------------------------------------

@@ -12,14 +12,14 @@ tw_fkkmk <- search_tweets("libur", n = 10000,
                           retryonratelimit = T,
                           include_rts = FALSE)
 
-# write_as_csv(tw_fkkmk, "dat/tw_fkkmk.csv")
+saveRDS(tw_fkkmk, "dat/tw_fkkmk.rds")
 
 ts_plot(tw_fkkmk) +
   theme_minimal() +
   theme(plot.title = element_text(face = "bold")) +
   labs(
     x = NULL, y = NULL,
-    title = "Frequency of 'fkkmk' Twitter statuses from past 9 days",
+    title = "Frequency of 'libur' Twitter statuses from past 9 days",
     subtitle = "Twitter status (tweet) counts aggregated using three-hour intervals",
     caption = "Source: Data collected from Twitter's REST API via rtweet"
   )
@@ -104,9 +104,9 @@ corpus[[1]]$content
 #install.packages("wordcloud")
 library(wordcloud)
 
-textdata <- as.character(c(1:9142))
+textdata <- as.character(c(1:10000))
 
-for(i in c(1:9142)){
+for(i in c(1:10000)){
   textdata[i] <- corpus[[i]]$content
 }
 
