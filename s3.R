@@ -8,7 +8,7 @@ library(wordcloud)
 auth_setup_default()
 
 ?search_tweets
-tw_fkkmk <- search_tweets("teh", n = 10000,
+tw_fkkmk <- search_tweets("kopi", n = 10000,
                           retryonratelimit = T,
                           include_rts = FALSE)
 
@@ -30,6 +30,7 @@ ts_plot(tw_fkkmk) +
 comments_text <- as.character(tw_fkkmk$full_text)
 comments_text = tibble(text = Reduce(c, comments_text)) %>%
   mutate(text = stri_trans_general(tolower(text), "Latin-ASCII"))
+
 remove = c("ada","adanya","adalah","adapun","agak","agaknya","agar",
            "akan","akankah","akhirnya","aku","akulah","amat","amatlah",
            "anda","andalah","antar","diantaranya","antara","antaranya",

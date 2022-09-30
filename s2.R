@@ -79,6 +79,7 @@ head(dat, 10)
 
 library(rgdal)
 mapYk <- readOGR("dat/map/yogyakarta-village.shp", verbose = FALSE)
+plot(mapYk)
 
 rownames(dat) <- dat$Idx
 mapYk <- SpatialPolygonsDataFrame(mapYk, dat, match.ID = TRUE)
