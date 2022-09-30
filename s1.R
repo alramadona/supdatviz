@@ -96,7 +96,7 @@ ggarrange(______, ______, ______,
 
 ggplot(dat, aes(x = MoY, y = cases)) +
   geom_boxplot(color = "gray60", outlier.alpha = 0) +
-  geom_point(size = 3, alpha = 0.15) +
+  geom_point(size = 3, alpha = 0.25) +
   theme_minimal()
 
 set.seed(2019)
@@ -116,10 +116,11 @@ ggplot(dat, aes(x = MoY, y = cases, col = MoY)) +
   geom_hline(aes(yintercept = cases_avg), color = "gray70", size = 0.6) +
   geom_jitter(size = 2, alpha = 0.25, width = 0.2) +
   stat_summary(fun = mean, geom = "point", size = 5) +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position="none")
 
 # library
+# install.packages("hrbrthemes")
 library(hrbrthemes)
 
 # dataset with different distributions
@@ -170,14 +171,14 @@ ggarrange(p, q, r,
 
 # tugas 2 - silakan dilengkapi! (suhu atau curah hujan) -------------------
 
-_______avg <-
+_____avg <-
   dat %>%
-  summarize(avg = mean(______, na.rm = TRUE)) %>%
+  summarize(avg = mean(____, na.rm = TRUE)) %>%
   pull(avg)
-_______avg
+_____avg
 
-ggplot(dat, aes(x = ______, y = ______, col = ______)) +
-  geom_hline(aes(yintercept = ______), color = "gray70", size = 0.6) +
+ggplot(dat, aes(x = ____, y = ____, col = MoY)) +
+  geom_hline(aes(yintercept = _____avg), color = "gray70", size = 0.6) +
   geom_jitter(size = 2, alpha = 0.25, width = 0.2) +
   stat_summary(fun = mean, geom = "point", size = 5) +
   theme_minimal() +
