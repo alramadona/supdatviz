@@ -8,9 +8,9 @@ names(datTotal)
 str(datTotal)
 
 # install packages
-# install.packages(dplyr)
-# install.packages(zoo)
-# install.packages(ggplot2)
+# install.packages("dplyr")
+# install.packages("zoo")
+# install.packages("ggplot2")
 
 # library
 library(dplyr)
