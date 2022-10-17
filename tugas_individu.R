@@ -31,3 +31,36 @@ leaflet(data = dat_2007) %>% addTiles() %>%
 
 leaflet(data = dat_2007) %>% addTiles() %>%
   addCircleMarkers(~longitude, ~latitude, color = ~pal(Cases), radius = ~log(Cases))
+
+##
+
+dat <- read.csv("dat/emdat-country-profiles.csv")
+dat <- dat[-c(1),]
+names(dat)
+
+dat <- select(dat, 
+              Year:Total.Deaths)   
+
+unique(dat$Country)
+str(dat)
+
+dat_India <- filter(dat, Country=="India")
+dat_Bhutan <- filter(dat, Country=="Bhutan")
+
+dat_country <- rbind(dat_India,dat_Bhutan)
+
+dat_country$Year <- as.numeric(as.character(dat_country$Year))
+dat_country$Total.Affected <- as.numeric(as.character(dat_country$Total.Affected))
+
+ggplot(dat_country, aes(x = Year, y = Total.Affected, col = Country)) +
+  geom_point() +
+  geom_line() +
+  #scale_x_continuous(breaks=c(2007:2017)) +
+  theme_bw()
+
+ggplot(dat_country, aes(x = Year, y = Total.Affected)) +
+  geom_point() +
+  geom_line() +
+  #scale_x_continuous(breaks=c(2007:2017)) +
+  theme_bw() +
+  facet_wrap(~Country)
