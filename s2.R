@@ -1,154 +1,194 @@
-library(SpatialEpi)
 library(dplyr)
 
+dat <- read.csv("dat/Berau_puskesmas_v2.csv")
+dat$X <- NULL
+names(dat)
+
+datPenduduk <- select(dat, 
+                      puskesmas, kecamatan, 
+                      jlh_penduduk_2021,jlh_penduduk_2020,jlh_penduduk_2019,jlh_penduduk_2018)
+
+datDiare <- select(dat,
+                   puskesmas, kecamatan,
+                   diare_2021,diare_2020,diare_2019,diare_2018)
+
+datDBD <- select(dat,
+                 puskesmas,kecamatan,
+                 dbd_2021,dbd_2020,dbd_2019,dbd_2018)
+
+################## spasial
+
+# dat$lat <- as.numeric(as.character(sub(',.*', '', dat$lat_long)))
+# dat$long <- as.numeric(as.character(sub('.*,', '', dat$lat_long)))
+
+library(leaflet)
+
+leaflet(data = dat) %>% addTiles() %>%
+  addCircleMarkers(~long, ~lat, color = "red", label = ~as.character(puskesmas), radius = 3) %>%
+  addProviderTiles(providers$OpenStreetMap)
+
+leaflet(data = dat) %>% addTiles() %>% 
+  addCircleMarkers(~long, ~lat, clusterOptions = markerClusterOptions())
+
+leaflet(data = dat) %>% addTiles() %>%
+  addCircleMarkers(~long, ~lat, color = "red", label = ~as.character(puskesmas), radius = ~sqrt(bumil_sasaran)) %>%
+  addProviderTiles(providers$MapBox)
+
 library(sp)
-library(leaflet)
+library("ggplot2")
+theme_set(theme_bw())
+library("sf")
+library("ggspatial")
 
+mapBerau <- read_sf("dat/map/batas_luar_adm_Berau_pola_kecamatan20.shp")
 
-# intro -------------------------------------------------------------------
-## https://www.paulamoraga.com/tutorial-areal-data/
+ggplot(data = mapBerau) +
+  geom_sf()
 
-data(pennLC)
+ggplot(data = mapBerau) +
+  geom_sf() +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("Kabupaten Berau", subtitle = paste0("(", length(unique(mapBerau$KECAMATAN)), " kecamatan)"))
 
-?pennLC
+ggplot(data = mapBerau) +
+  geom_sf(aes(fill = ID)) +
+  xlab("Longitude") + ylab("Latitude")
 
-head(pennLC$geo, 10)
-head(pennLC$data, 10)
-head(pennLC$smoking, 10)
+ggplot(data = mapBerau) +
+  geom_sf(aes(fill = ID)) +
+  xlab("Longitude") + ylab("Latitude") +
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
 
-pennLC$spatial.polygon
-plot(pennLC$spatial.polygon)
+datDBD <- dat %>% 
+  select(puskesmas, kecamatan, 
+         jlh_penduduk_2021,jlh_penduduk_2020,jlh_penduduk_2019,jlh_penduduk_2018,
+         dbd_2021,dbd_2020,dbd_2019,dbd_2018) %>%
+  group_by(kecamatan) %>%
+  summarise(jlh_penduduk_2021 = sum(jlh_penduduk_2021),
+            jlh_penduduk_2020 = sum(jlh_penduduk_2020),
+            jlh_penduduk_2019 = sum(jlh_penduduk_2019),
+            jlh_penduduk_2018 = sum(jlh_penduduk_2018),
+            dbd_2021 = sum(dbd_2021),
+            dbd_2020 = sum(dbd_2020),
+            dbd_2019 = sum(dbd_2019),
+            dbd_2018 = sum(dbd_2018))
 
+tot_penduduk_2021 <- sum(datDBD$jlh_penduduk_2021)
+tot_dbd_2021 <- sum(datDBD$dbd_2021)
+datDBD$E_dbd_2021 <- (datDBD$jlh_penduduk_2021/tot_penduduk_2021)*tot_dbd_2021
+datDBD$SMR2021 <- datDBD$dbd_2021/datDBD$E_dbd_2021
+mapBerau$SMR2021 <- datDBD$SMR2021[match(mapBerau$KECAMATAN, datDBD$kecamatan)]
 
-# analisis spasial (1) ----------------------------------------------------
+tot_penduduk_2020 <- sum(datDBD$jlh_penduduk_2020)
+tot_dbd_2020 <- sum(datDBD$dbd_2020)
+datDBD$E_dbd_2020 <- (datDBD$jlh_penduduk_2020/tot_penduduk_2020)*tot_dbd_2020
+datDBD$SMR2020 <- datDBD$dbd_2020/datDBD$E_dbd_2020
+mapBerau$SMR2020 <- datDBD$SMR2020[match(mapBerau$KECAMATAN, datDBD$kecamatan)]
 
-d <- group_by(pennLC$data, county) %>% summarize(Y = sum(cases),
-                                                 pop = sum(population))
-head(d)
+tot_penduduk_2019 <- sum(datDBD$jlh_penduduk_2019)
+tot_dbd_2019 <- sum(datDBD$dbd_2019)
+datDBD$E_dbd_2019 <- (datDBD$jlh_penduduk_2019/tot_penduduk_2019)*tot_dbd_2019
+datDBD$SMR2019 <- datDBD$dbd_2019/datDBD$E_dbd_2019
+mapBerau$SMR2019 <- datDBD$SMR2019[match(mapBerau$KECAMATAN, datDBD$kecamatan)]
 
-pennLC$data <- pennLC$data[order(pennLC$data$county, pennLC$data$race, pennLC$data$gender, pennLC$data$age), ]
-E <- expected(population = pennLC$data$population, cases = pennLC$data$cases, n.strata = 16)
+tot_penduduk_2018 <- sum(datDBD$jlh_penduduk_2018)
+tot_dbd_2018 <- sum(datDBD$dbd_2018)
+datDBD$E_dbd_2018 <- (datDBD$jlh_penduduk_2018/tot_penduduk_2018)*tot_dbd_2018
+datDBD$SMR2018 <- datDBD$dbd_2018/datDBD$E_dbd_2018
+mapBerau$SMR2018 <- datDBD$SMR2018[match(mapBerau$KECAMATAN, datDBD$kecamatan)]
 
-E
+library(viridis)
+my_breaks <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
-d$E <- E
-d$Exp <- (d$pop/sum(d$pop)) * sum(d$Y)
+mapBerau_points <- st_centroid(mapBerau)
+mapBerau_points <- cbind(mapBerau, st_coordinates(st_centroid(mapBerau$geometry)))
 
-d$SMR <- d$Y/d$E
-d$SMRv2 <- d$Y/d$Exp
+datPoints <- dat %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326) %>% 
+  st_transform()
 
-d$SMR_diff <- d$SMR-d$SMRv2
-d$SMR_diff_abs <- abs(d$SMR_diff)
+datPoints <- cbind(datPoints, st_coordinates(st_centroid(datPoints$geometry)))
 
-rownames(d) <- d$county
+ggplot(data = mapBerau) +
+  geom_sf(aes(fill = SMR2018)) +
+  scale_fill_gradientn(colours=rev(magma(10)),
+                       na.value = "grey100", 
+                       breaks = my_breaks, labels = my_breaks) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  xlab("Longitude") + ylab("Latitude")
 
-map <- pennLC$spatial.polygon
-plot(map)
+p1 <- ggplot(data = mapBerau) +
+  geom_sf(aes(fill = SMR2018)) +
+  scale_fill_gradient(low = "green", high = "darkred",
+                      limits = c(0,5)) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("SMR Demam Berdarah", subtitle = "2018")
 
-map <- SpatialPolygonsDataFrame(map, d, match.ID = TRUE)
-head(map@data)
+p2 <- ggplot(data = mapBerau) +
+  geom_sf(aes(fill = SMR2019)) +
+  scale_fill_gradient(low = "green", high = "darkred",
+                      limits = c(0,5)) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("SMR Demam Berdarah", subtitle = "2019")
 
-l <- leaflet(map) %>% addTiles()
+p3 <- ggplot(data = mapBerau) +
+  geom_sf(aes(fill = SMR2020)) +
+  scale_fill_gradient(low = "green", high = "darkred",
+                      limits = c(0,5)) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("SMR Demam Berdarah", subtitle = "2020")
 
-pal <- colorNumeric(palette = "YlOrRd", domain = map$SMR)
+p4 <- ggplot(data = mapBerau) +
+  geom_sf(aes(fill = SMR2021)) +
+  scale_fill_gradient(low = "green", high = "darkred",
+                      limits = c(0,5)) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("SMR Demam Berdarah", subtitle = "2021")
 
-l %>% addPolygons(color = "grey", weight = 1, fillColor = ~pal(SMR), fillOpacity = 0.5) %>%
-  addLegend(pal = pal, values = ~SMR, opacity = 0.5, title = "SMR", position = "bottomright")
+library(ggpubr)
+ggarrange(p1, p2, p3, p4,
+          labels = c("", "", "", ""),
+          ncol = 2, nrow = 2)
 
+ggplot(data = mapBerau) +
+  geom_sf() +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("Kabupaten Berau", subtitle = paste0("(", length(unique(mapBerau$KECAMATAN)), " kecamatan)")) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering)
 
-# tugas 3 - silakan dilengkapi! (dengan SMRv2) ----------------------------
+ggplot(data = mapBerau) +
+  geom_sf() +
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("Kabupaten Berau", subtitle = paste0("(", length(unique(mapBerau$KECAMATAN)), " kecamatan)")) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering)
 
-pal <- colorNumeric(palette = "YlOrRd", domain = map$______)
+ggplot(data = mapBerau) +
+  geom_sf() +
+  geom_sf(data = datPoints, 
+          color = "red", size = 1) + 
+  xlab("Longitude") + ylab("Latitude") +
+  ggtitle("Kabupaten Berau", subtitle = paste0("(", length(unique(mapBerau$KECAMATAN)), " kecamatan)")) +
+  geom_text(data= mapBerau_points, aes(x=X, y=Y, label=KECAMATAN),
+            color = "darkblue", fontface = "bold", check_overlap = FALSE) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering)
 
-l %>% addPolygons(color = "grey", weight = 1, fillColor = ~pal(______), fillOpacity = 0.5) %>%
-  addLegend(pal = pal, values = ~______, opacity = 0.5, title = "SMR", position = "bottomright")
-
-
-# analisis spasial (2) ----------------------------------------------------
-
-dat <- read.csv("dat/Yk_kasus.csv")
-dat$pop <- as.integer((dat$Pop_2016_II + dat$Pop_2017_I)/2)
-head(dat, 10)
-
-totPop <- sum(dat$pop)
-totKasus <- sum(dat$kasus)
-
-dat$E <- as.integer(dat$pop/totPop * totKasus)
-dat$SMR <- dat$kasus/dat$E
-head(dat, 10)
-
-library(rgdal)
-mapYk <- readOGR("dat/map/yogyakarta-village.shp", verbose = FALSE)
-plot(mapYk)
-
-rownames(dat) <- dat$Idx
-mapYk <- SpatialPolygonsDataFrame(mapYk, dat, match.ID = TRUE)
-head(mapYk@data,45)
-
-library(leaflet)
-l <- leaflet(mapYk) %>% addTiles()
-
-pal <- colorNumeric(palette = "YlOrRd", domain = mapYk$SMR)
-
-l %>% addPolygons(color = "grey", weight = 1, fillColor = ~pal(SMR), fillOpacity = 0.5) %>%
-  addLegend(pal = pal, values = ~SMR, opacity = 0.5, title = "SMR", position = "bottomright")
-
-## extra
-
-labels <- sprintf("<strong>%s</strong><br/>Kasus: %s <br/>Expected: %s <br/>Jumlah Penduduk: %s <br/>SMR: %s",
-                  mapYk$village, mapYk$kasus, mapYk$E, mapYk$pop, round(mapYk$SMR,2)) %>%
-  lapply(htmltools::HTML)
-
-l %>% addPolygons(color = "grey", weight = 1, fillColor = ~pal(SMR), fillOpacity = 0.5,
-                  highlightOptions = highlightOptions(weight = 4),
-                  label = labels,
-                  labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"),
-                                              textsize = "15px", direction = "auto")) %>%
-  addLegend(pal = pal, values = ~SMR, opacity = 0.5, title = "SMR", position = "bottomright")
-
-
-# analisis spasial (3) ----------------------------------------------------
-
-dat <- read.csv("dat/Yk_points.csv")
-dat$n <- c(1:nrow(dat))
-head(dat, 10)
-
-# https://rstudio.github.io/leaflet/markers.html
-leaflet(data = dat) %>% addTiles() %>%
-  addMarkers(~lon, ~lat, popup = ~as.character(keterangan)) %>% 
-  addProviderTiles(providers$CartoDB.Positron)
-
-leaflet(data = dat) %>% addTiles() %>%
-  addCircleMarkers(~lon, ~lat, radius = ~n) %>% 
-  addProviderTiles(providers$CartoDB.Positron)
-
-pal <- colorFactor(c("green", "orange", "red"), domain = c("I", "II", "III"))
-
-leaflet(data = dat) %>% addTiles() %>%
-  addCircleMarkers(~lon, ~lat, color = ~pal(BM)) %>% 
-  addProviderTiles(providers$CartoDB.Positron)
-
-leaflet(data = dat) %>% addTiles() %>%
-  addCircleMarkers(~lon, ~lat, color = ~pal(BM), radius = ~log(BM_val)) %>% 
-  addProviderTiles(providers$CartoDB.Positron)
-
-
-# tugas 4 - silakan dilengkapi! -------------------------------------------
-
-dat <- read.csv("______")
-dat$n <- c(1:nrow(dat))
-head(dat, 10)
-
-# keterangan
-leaflet(data = ______) %>% addTiles() %>%
-  addMarkers(~long, ~lat, popup = ~as.character(keterangan)) %>% 
-  addProviderTiles(providers$CartoDB.Positron)
-
-# NIM
-leaflet(data = dat) %>% addTiles() %>%
-  addCircleMarkers(~______, ~______, color = "blue", radius = 3, label = ~as.character(______)) %>%
-  addProviderTiles(providers$CartoDB.Positron)
-
-# cluster
-leaflet(data = ______) %>% addTiles() %>% 
-  addMarkers(~______, ~______, clusterOptions = markerClusterOptions())
