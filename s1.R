@@ -1,13 +1,13 @@
 
-
 # load dataset ------------------------------------------------------------
 
+## sumber: https://doi.org/10.1371/journal.pone.0152688
 datTotal <- read.csv("dat/dengue.csv", na.string="#N/A")
 
 names(datTotal)
 str(datTotal)
 
-# install packages
+## install packages
 # install.packages("dplyr")
 # install.packages("zoo")
 # install.packages("ggplot2")
@@ -73,7 +73,7 @@ ggarrange(p1, p2, p3,
 ?ggarrange
 
 
-# tugas 1 - silakan dilengkapi! -------------------------------------------
+# latihan 1 - silakan dilengkapi! -------------------------------------------
 
 q1 <- ggplot(dat, aes(x = MoY, y = cases)) +
   geom_boxplot() + theme_bw()
@@ -99,11 +99,11 @@ ggplot(dat, aes(x = MoY, y = cases)) +
   geom_point(size = 3, alpha = 0.25) +
   theme_minimal()
 
-set.seed(2019)
+set.seed(2025)
 
 ggplot(dat, aes(x = MoY, y = cases, col = MoY)) +
-  theme_minimal() + 
   geom_jitter(size = 2, width = 0.2) + 
+  theme_minimal() + 
   theme(legend.position="none")
 
 cases_avg <-
@@ -116,60 +116,56 @@ ggplot(dat, aes(x = MoY, y = cases, col = MoY)) +
   geom_hline(aes(yintercept = cases_avg), color = "gray70", size = 0.6) +
   geom_jitter(size = 2, alpha = 0.25, width = 0.2) +
   stat_summary(fun = mean, geom = "point", size = 5) +
-  theme_bw() +
+  theme_minimal() + 
   theme(legend.position="none")
-
-# library
-# install.packages("hrbrthemes")
-library(hrbrthemes)
 
 # dataset with different distributions
 
 ggplot(dat, aes(x=cases)) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 
 ggplot(dat, aes(x=temp)) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 
 ggplot(dat, aes(x=rain)) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 
 p <- ggplot(dat, aes(x=cases, fill=as.factor(term))) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 p 
 
 q <- ggplot(dat, aes(x=temp, fill=as.factor(term))) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 q
 
 r <- ggplot(dat, aes(x=rain, fill=as.factor(term))) +
   geom_histogram(color="#e9ecef", alpha=0.6, position='identity') +
   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  theme_ipsum() +
+  theme_minimal() + 
   labs(fill="")
 r 
 
 ggarrange(p, q, r,
           labels = c("A", "B", "C"),
-          ncol = 3, nrow = 1)
+          ncol = 1, nrow = 3)
 
 
-# tugas 2 - silakan dilengkapi! (suhu atau curah hujan) -------------------
+# latihan 2 - silakan dilengkapi! (suhu atau curah hujan) -------------------
 
 _____avg <-
   dat %>%
