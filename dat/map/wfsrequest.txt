@@ -1,0 +1,1 @@
+http://satudata.beraukab.go.id/geoserver/ows?service=WFS&version=1.0.0&request=GetFeature&typename=geonode%3Abatas_luar_adm_Berau_pola_kecamatan20&outputFormat=SHAPE-ZIP&srs=EPSG%3A32650&format_options=charset%3AUTF-8
